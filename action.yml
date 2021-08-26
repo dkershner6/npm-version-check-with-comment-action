@@ -1,19 +1,78 @@
-name: 'Hello World'
-description: 'Greet someone'
+name: 'NPM package.json version check with PR Comment'
+description: 'This is a composite action that checks out the pr and base branch, compares package.json versions, and comments on the PR whether there is a change or not. This can be ran more than once on the same PR.'
+
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  fail-on-no-change:
+    description: "Whether a lack of version change should fail the workflow"
     required: true
-    default: 'World'
+    default: "true"
+  github-token:
+    description: "GITHUB_TOKEN, standard one is fine"
+    required: true
+  node-version:
+    description: "What node version to use (shouldn't really matter)"
+    required: true
+    default: '14.x'
+    
 outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-id }}
+  version-did-change:
+    description: "Whether or not the npm package.json version changed"
+    value: ${{ steps.version-changed.outputs.version-did-change }}
+
 runs:
   using: "composite"
   steps:
-    - run: echo Hello ${{ inputs.who-to-greet }}.
-      shell: bash
-    - id: random-number-generator
-      run: echo "::set-output name=random-id::$(echo $RANDOM)"
-      shell: bash
+    - name: Checkout Base 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          path: "base"
+          ref: ${{ github.event.pull_request.base.ref }}
+      - name: Checkout PR Branch 🛎️
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          path: "prbranch"
+      - name: Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Get Base NPM Version
+        id: base-version
+        uses: martinbeentjes/npm-get-version-action@v1.1.0
+        with:
+          path: base
+      - run: "echo Base Version: ${{ steps.base-version.outputs.current-version }}"
+
+      - name: Get PR NPM Version
+        id: pr-version
+        uses: martinbeentjes/npm-get-version-action@v1.1.0
+        with:
+          path: prbranch
+      - run: "echo PR Version: ${{ steps.pr-version.outputs.current-version }}"
+      
+      - id: version-changed
+        run: echo "::set-output name=version-did-change::$(echo ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }})"
+        shell: bash
+
+      - name: Message when changed
+        if: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            PR with version bump detected! :white_check_mark:
+            ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+      - name: Message when unchanged
+        if: ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            No version bump detected. :x:
+            ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+            
+      - name: Fail on no version updated
+        if: ${{ inputs.fail-on-no-change == "true" }} && ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
+        run: 'echo "No version change :/" && exit 1'
+    
