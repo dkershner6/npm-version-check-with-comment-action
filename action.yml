@@ -23,56 +23,56 @@ runs:
   using: "composite"
   steps:
     - name: Checkout Base 🛎️
-        uses: actions/checkout@v2
-        with:
-          persist-credentials: false
-          path: "base"
-          ref: ${{ github.event.pull_request.base.ref }}
-      - name: Checkout PR Branch 🛎️
-        uses: actions/checkout@v2
-        with:
-          persist-credentials: false
-          path: "prbranch"
-      - name: Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ inputs.node-version }}
-      - name: Get Base NPM Version
-        id: base-version
-        uses: martinbeentjes/npm-get-version-action@v1.1.0
-        with:
-          path: base
-      - run: "echo Base Version: ${{ steps.base-version.outputs.current-version }}"
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+        path: "base"
+        ref: ${{ github.event.pull_request.base.ref }}
+    - name: Checkout PR Branch 🛎️
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+        path: "prbranch"
+    - name: Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ inputs.node-version }}
+    - name: Get Base NPM Version
+      id: base-version
+      uses: martinbeentjes/npm-get-version-action@v1.1.0
+      with:
+        path: base
+    - run: "echo Base Version: ${{ steps.base-version.outputs.current-version }}"
 
-      - name: Get PR NPM Version
-        id: pr-version
-        uses: martinbeentjes/npm-get-version-action@v1.1.0
-        with:
-          path: prbranch
-      - run: "echo PR Version: ${{ steps.pr-version.outputs.current-version }}"
-      
-      - id: version-changed
-        run: echo "::set-output name=version-did-change::$(echo ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }})"
-        shell: bash
+    - name: Get PR NPM Version
+      id: pr-version
+      uses: martinbeentjes/npm-get-version-action@v1.1.0
+      with:
+        path: prbranch
+    - run: "echo PR Version: ${{ steps.pr-version.outputs.current-version }}"
 
-      - name: Message when changed
-        if: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            PR with version bump detected! :white_check_mark:
-            ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
-      - name: Message when unchanged
-        if: ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            No version bump detected. :x:
-            ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
-            
-      - name: Fail on no version updated
-        if: ${{ inputs.fail-on-no-change == "true" }} && ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
-        run: 'echo "No version change :/" && exit 1'
-    
+    - id: version-changed
+      run: echo "::set-output name=version-did-change::$(echo ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }})"
+      shell: bash
+
+    - name: Message when changed
+      if: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        message: |
+          PR with version bump detected! :white_check_mark:
+          ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+    - name: Message when unchanged
+      if: ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        message: |
+          No version bump detected. :x:
+          ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+
+    - name: Fail on no version updated
+      if: ${{ inputs.fail-on-no-change == "true" }} && ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
+      run: 'echo "No version change :/" && exit 1'
+
