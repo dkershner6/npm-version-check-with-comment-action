@@ -1,5 +1,9 @@
 name: 'NPM package.json version check with PR Comment'
-description: 'This is a composite action that checks out the pr and base branch, compares package.json versions, and comments on the PR whether there is a change or not. This can be ran more than once on the same PR.'
+description: 'Checks out the pr and base branch, compares package.json versions, and comments on the PR whether there is a change or not.'
+
+branding:
+  icon: check
+  color: red
 
 inputs:
   github-token:
