@@ -2,10 +2,6 @@ name: 'NPM package.json version check with PR Comment'
 description: 'This is a composite action that checks out the pr and base branch, compares package.json versions, and comments on the PR whether there is a change or not. This can be ran more than once on the same PR.'
 
 inputs:
-  fail-on-no-change:
-    description: "Whether a lack of version change should fail the workflow"
-    required: true
-    default: "true"
   github-token:
     description: "GITHUB_TOKEN, standard one is fine"
     required: true
@@ -43,6 +39,7 @@ runs:
       with:
         path: base
     - run: "echo Base Version: ${{ steps.base-version.outputs.current-version }}"
+      shell: bash
 
     - name: Get PR NPM Version
       id: pr-version
@@ -50,29 +47,26 @@ runs:
       with:
         path: prbranch
     - run: "echo PR Version: ${{ steps.pr-version.outputs.current-version }}"
+      shell: bash
 
     - id: version-changed
       run: echo "::set-output name=version-did-change::$(echo ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }})"
       shell: bash
-
-    - name: Message when changed
+      
+    - name: Determine Message
+      uses: haya14busa/action-cond@v1
+      id: message
+      with:
+        cond: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
+        if_true: "PR with version bump detected! :white_check_mark:"
+        if_false: "No version bump detected. :x:"
+        
+    - name: PR Comment
       if: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
       uses: marocchino/sticky-pull-request-comment@v2
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
         message: |
-          PR with version bump detected! :white_check_mark:
+          ${{ steps.message.outputs.value }}
           ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
-    - name: Message when unchanged
-      if: ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        message: |
-          No version bump detected. :x:
-          ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
-
-    - name: Fail on no version updated
-      if: ${{ inputs.fail-on-no-change == "true" }} && ${{ steps.base-version.outputs.current-version == steps.pr-version.outputs.current-version }}
-      run: 'echo "No version change :/" && exit 1'
 
