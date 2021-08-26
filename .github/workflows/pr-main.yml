@@ -1,12 +1,3 @@
-# npm-version-check-with-comment-action
-
-This is a composite action that checks out the pr and base branch, compares package.json versions, and comments on the PR whether there is a change or not.
-
-This can be ran more than once on the same PR.
-
-## Usage
-
-```yml
 name: "PR to Main"
 on:
   pull_request:
@@ -18,17 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: dkershner6/npm-version-check-with-comment-action@v1
+      - uses: ./
         id: version-check
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-          node-version: "12.x" # optional, defaults to 14.x
           
-      # Outputs whether or not it changed
       - run: echo ${{ steps.version-check.outputs.version-did-change }}
       
       # Optionally fail the workflow, should you choose
       - name: Fail on no version updated
         if: ${{ steps.version-check.outputs.version-did-change == 'false' }}
         run: 'echo "No version change :/" && exit 1'
-```
+  
+  auto-approve-pr:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: hmarr/auto-approve-action@v2.0.0
+        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]' || github.actor == 'dkershner6'
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
