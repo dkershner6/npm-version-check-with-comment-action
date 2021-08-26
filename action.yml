@@ -62,7 +62,6 @@ runs:
         if_false: "No version bump detected. :x:"
         
     - name: PR Comment
-      if: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         GITHUB_TOKEN: ${{ inputs.github-token }}
