@@ -10,8 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: ./
+        id: version-check
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - run: echo ${{ steps.version-check.outputs.version-did-change }}
+      - name: Fail on no version updated
+        if: ${{ steps.version-check.outputs.version-did-change == false }}
+        run: 'echo "No version change :/" && exit 1'
   
   auto-approve-pr:
     runs-on: ubuntu-latest
