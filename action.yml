@@ -13,7 +13,7 @@ inputs:
     description: "What node version to use (shouldn't really matter)"
     required: true
     default: '14.x'
-   working-directory:
+  working-directory:
     description: "The directory inside the repo where package.json is located. Format as /package1/folder1. Leave blank for root.
     required: true
     default: ""
