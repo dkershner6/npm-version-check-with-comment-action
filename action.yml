@@ -66,8 +66,8 @@ runs:
       id: message
       with:
         cond: ${{ steps.base-version.outputs.current-version != steps.pr-version.outputs.current-version }}
-        if_true: "PR with version bump detected! :white_check_mark:"
-        if_false: "No version bump detected. :x:"
+        if_true: "${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }} :white_check_mark:"
+        if_false: "${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }} :x:"
         
     - name: PR Comment
       uses: marocchino/sticky-pull-request-comment@v2
@@ -75,7 +75,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         header: ${{ inputs.working-directory }}
         message: |
-          # ${{ inputs.working-directory }}
+          # ${{ inputs.working-directory }} Version Bump Check
           ${{ steps.message.outputs.value }}
-          ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+          
 
