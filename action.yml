@@ -15,7 +15,7 @@ inputs:
     default: '14.x'
    working-directory:
     description: "The directory inside the repo where package.json is located. Format as /package1/folder1. Leave blank for root.
-    required: false
+    required: true
     default: ""
     
 outputs:
