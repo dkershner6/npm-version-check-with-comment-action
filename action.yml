@@ -75,7 +75,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         header: ${{ inputs.working-directory }}
         message: |
-          ${{ inputs.working-directory }}
+          # ${{ inputs.working-directory }}
           ${{ steps.message.outputs.value }}
-          ${{ steps.base-version.outputs.current-version }} => ${{ steps.pr-version.outputs.current-version }}
+          ${{ steps.base-version.outputs.current-version || "None" }} => ${{ steps.pr-version.outputs.current-version }}
 
