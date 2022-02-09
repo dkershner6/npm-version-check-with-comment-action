@@ -75,7 +75,8 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         header: ${{ inputs.working-directory }}
         message: |
-          # ${{ inputs.working-directory }} Version Bump Check
+          ### Version Bump Check
           ${{ steps.message.outputs.value }}
+          #### ${{ inputs.working-directory }}
           
 
