@@ -22,6 +22,7 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           node-version: "12.x" # optional, defaults to 14.x
+          working-directory: "/package1/folder1/" # optional, defaults to root
           
       # Outputs whether or not it changed
       - run: echo ${{ steps.version-check.outputs.version-did-change }}

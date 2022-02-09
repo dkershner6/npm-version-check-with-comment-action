@@ -20,6 +20,14 @@ jobs:
       - name: Fail on no version updated
         if: ${{ steps.version-check.outputs.version-did-change == 'false' }}
         run: 'echo "No version change :/" && exit 1'
+        
+      - uses: ./
+        id: version-check-nested
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          working-directory: "/nested"
+          
+      - run: echo ${{ steps.version-check-nested.outputs.version-did-change }}
   
   auto-approve-pr:
     runs-on: ubuntu-latest
