@@ -77,6 +77,6 @@ runs:
         message: |
           ### Version Bump Check
           ${{ steps.message.outputs.value }}
-          **${{ inputs.working-directory }}**
+          #### ${{ inputs.working-directory }}
           
 
